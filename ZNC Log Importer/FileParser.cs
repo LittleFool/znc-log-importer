@@ -30,24 +30,34 @@ namespace ZNC_Log_Importer
         public void parse()
         {
             string line;
+            LocalDateTime dt;
             Regex regexJoinQuit = new Regex(@"^\[(\d{2}):(\d{2}):(\d{2})\] \*\*\* (Joins|Quits): ([\w-\{}|[\]]+) \((?:\w+@[\w.:]+)\)(?: \(([\w :.]+)\))?$");
             Regex regexSetMode = new Regex(@"^\[(\d{2}):(\d{2}):(\d{2})\] \*\*\* RatMama\[BOT\] sets mode: (\+[vhoa]) ([\w-,\{}|[\]]+)$");
             Regex regexRename = new Regex(@"^\[(\d{2}):(\d{2}):(\d{2})\] \*\*\* ([\w-\{}|[\]]+) is now known as ([\w-\{}|[\]]+)$");
             Regex regexText = new Regex(@"^\[(\d{2}):(\d{2}):(\d{2})\] <([\w-\{}|[\]]+)> (.*)$");
+            Regex regexTime = new Regex(@"^\[(\d{2}):(\d{2}):(\d{2})\] .*$");
 
             Match matchJoinQuit;
             Match matchSetMode;
             Match matchRename;
             Match matchText;
+            Match matchTime;
 
             System.IO.StreamReader file = new System.IO.StreamReader(fileName);
             while ((line = file.ReadLine()) != null)
             {
+                matchTime = regexTime.Match(line);
+                if(matchTime.Success && matchTime.Groups.Count == 4)
+                {
+                    dt = new LocalDateTime(date.Year, date.Month, date.Day, int.Parse(matchTime.Groups[1].Value), int.Parse(matchTime.Groups[2].Value), int.Parse(matchTime.Groups[3].Value));
+                } else
+                {
+                    continue;
+                }
+                
                 matchJoinQuit = regexJoinQuit.Match(line);
                 if(matchJoinQuit.Success && matchJoinQuit.Groups.Count >= 6)
                 {
-                    LocalDateTime dt = new LocalDateTime(date.Year, date.Month, date.Day, int.Parse(matchJoinQuit.Groups[1].Value), int.Parse(matchJoinQuit.Groups[2].Value), int.Parse(matchJoinQuit.Groups[3].Value));
-
                     if (matchJoinQuit.Groups[4].Value.Equals("Joins"))
                     {
                         User u = new User(dt, matchJoinQuit.Groups[5].Value);
@@ -67,7 +77,9 @@ namespace ZNC_Log_Importer
                 matchSetMode = regexSetMode.Match(line);
                 if(matchSetMode.Success && matchSetMode.Groups.Count == 6)
                 {
-                    // TODO handle set Mode
+                    User u = users[matchJoinQuit.Groups[5].Value];
+                    u.setMode(dt, matchJoinQuit.Groups[4].Value);
+
                     continue;
                 }
 
