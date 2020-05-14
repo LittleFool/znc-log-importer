@@ -86,7 +86,11 @@ namespace ZNC_Log_Importer
                 matchRename = regexRename.Match(line);
                 if(matchRename.Success && matchRename.Groups.Count == 6)
                 {
-                    // TODO handle rename
+                    User u = users[matchJoinQuit.Groups[4].Value];
+                    users.Remove(u.name);
+                    u.setName(dt, matchJoinQuit.Groups[5].Value);
+                    users.Add(u.name, u);
+
                     continue;
                 }
 

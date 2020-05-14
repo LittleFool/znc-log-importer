@@ -22,7 +22,7 @@ namespace ZNC_Log_Importer
 
         public void setMode(LocalDateTime dt, string mode)
         {
-            Message m = new Message(dt, this.mode, name, "changed mode to " + mode);
+            Message m = new Message(dt, this.mode, name, "set mode " + mode);
             messages.Add(m);
             this.mode = mode;
         }
