@@ -12,13 +12,10 @@ namespace ZNC_Log_Importer
         private string mode;
         private List<Message> messages = new List<Message>();
 
-        public User(LocalDateTime dt, string name)
+        public User(string name)
         {
             this.name = name;
             this.mode = "";
-
-            Message m = new Message(dt, mode, name, "joins");
-            messages.Add(m);
         }
 
         public void setMode(LocalDateTime dt, string mode)
@@ -38,6 +35,12 @@ namespace ZNC_Log_Importer
         public void addMessage(LocalDateTime dt, String text)
         {
             Message m = new Message(dt, mode, name, text);
+            messages.Add(m);
+        }
+
+        public void join(LocalDateTime dt)
+        {
+            Message m = new Message(dt, mode, name, "joins");
             messages.Add(m);
         }
 

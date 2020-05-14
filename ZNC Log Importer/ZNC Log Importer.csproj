@@ -6,4 +6,12 @@
     <RootNamespace>ZNC_Log_Importer</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NodaTime" Version="2.4.8" />
+  </ItemGroup>
+
 </Project>

@@ -31,7 +31,7 @@ namespace ZNC_Log_Importer
         {
             string line;
             LocalDateTime dt;
-            Regex regexJoinQuit = new Regex(@"^\[(\d{2}):(\d{2}):(\d{2})\] \*\*\* (Joins|Quits): ([\w-\{}|[\]]+) \((?:\w+@[\w.:]+)\)(?: \(([\w :.]+)\))?$");
+            Regex regexJoinQuit = new Regex(@"^\[(\d{2}):(\d{2}):(\d{2})\] \*\*\* (Joins|Quits): ([\w-\{}|[\]]+) \((?:\w+@[\w.:]+)\)(?: \(([\w \{}|[\]!""§$% &\/= _,;<>|:().! -]+)\))?$");
             Regex regexSetMode = new Regex(@"^\[(\d{2}):(\d{2}):(\d{2})\] \*\*\* RatMama\[BOT\] sets mode: (\+[vhoa]) ([\w-,\{}|[\]]+)$");
             Regex regexRename = new Regex(@"^\[(\d{2}):(\d{2}):(\d{2})\] \*\*\* ([\w-\{}|[\]]+) is now known as ([\w-\{}|[\]]+)$");
             Regex regexText = new Regex(@"^\[(\d{2}):(\d{2}):(\d{2})\] <([\w-\{}|[\]]+)> (.*)$");
@@ -55,50 +55,95 @@ namespace ZNC_Log_Importer
                     continue;
                 }
                 
+                // Join or Quit
                 matchJoinQuit = regexJoinQuit.Match(line);
                 if(matchJoinQuit.Success && matchJoinQuit.Groups.Count >= 6)
                 {
+                    // User joins
                     if (matchJoinQuit.Groups[4].Value.Equals("Joins"))
                     {
-                        User u = new User(dt, matchJoinQuit.Groups[5].Value);
+                        // Username cant be in the dictionary so we add them
+                        User u = new User(matchJoinQuit.Groups[5].Value);
+                        u.join(dt);
                         users.Add(u.name, u);
                     }
 
+                    // User quits
                     if(matchJoinQuit.Groups[4].Value.Equals("Quits"))
                     {
-                        User u = users[matchJoinQuit.Groups[5].Value];
-                        u.quit(dt);
-                        users.Remove(u.name);
+                        // Username could be in the dictionary else we didnt see them join
+                        if (users.ContainsKey(matchJoinQuit.Groups[5].Value))
+                        {
+                            User u = users[matchJoinQuit.Groups[5].Value];
+                            u.quit(dt);
+                            users.Remove(u.name);
+                        } else
+                        {
+                            User u = new User(matchJoinQuit.Groups[5].Value);
+                            u.quit(dt);
+                        }
                     }
 
                     continue;
                 }
 
+                // Mode change
                 matchSetMode = regexSetMode.Match(line);
                 if(matchSetMode.Success && matchSetMode.Groups.Count == 6)
                 {
-                    User u = users[matchJoinQuit.Groups[5].Value];
-                    u.setMode(dt, matchJoinQuit.Groups[4].Value);
+                    User u;
+
+                    // very unlikely but the user might not be in the dictionary
+                    if (users.ContainsKey(matchSetMode.Groups[5].Value))
+                    {
+                        u = users[matchSetMode.Groups[5].Value];
+                    } else
+                    {
+                        u = new User(matchSetMode.Groups[5].Value);
+                    }
+
+                    u.setMode(dt, matchSetMode.Groups[4].Value);
 
                     continue;
                 }
 
+                // Namechange
                 matchRename = regexRename.Match(line);
                 if(matchRename.Success && matchRename.Groups.Count == 6)
                 {
-                    User u = users[matchJoinQuit.Groups[4].Value];
-                    users.Remove(u.name);
-                    u.setName(dt, matchJoinQuit.Groups[5].Value);
+                    User u;
+
+                    // if we saw the user join get it and remove it, if we didnt just create it
+                    if (users.ContainsKey(matchRename.Groups[4].Value))
+                    {
+                        u = users[matchRename.Groups[4].Value];
+                        users.Remove(u.name);
+                    } else
+                    {
+                        u = new User(matchRename.Groups[4].Value);
+                    }
+
+                    u.setName(dt, matchRename.Groups[5].Value);
                     users.Add(u.name, u);
 
                     continue;
                 }
 
+                // normal text line
                 matchText = regexText.Match(line);
                 if(matchText.Success && matchText.Groups.Count == 5)
                 {
-                    User u = users[matchJoinQuit.Groups[4].Value];
-                    u.addMessage(dt, matchJoinQuit.Groups[5].Value);
+                    User u;
+
+                    if (users.ContainsKey(matchText.Groups[4].Value))
+                    {
+                        u = users[matchText.Groups[4].Value];
+                    } else
+                    {
+                        u = new User(matchText.Groups[4].Value);
+                    }
+
+                    u.addMessage(dt, matchText.Groups[5].Value);
 
                     continue;
                 }
