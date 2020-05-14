@@ -97,7 +97,9 @@ namespace ZNC_Log_Importer
                 matchText = regexText.Match(line);
                 if(matchText.Success && matchText.Groups.Count == 5)
                 {
-                    // TODO handle Text
+                    User u = users[matchJoinQuit.Groups[4].Value];
+                    u.addMessage(dt, matchJoinQuit.Groups[5].Value);
+
                     continue;
                 }
             }

@@ -9,12 +9,13 @@ namespace ZNC_Log_Importer
     class User
     {
         public string name { private set; get; }
-        private string mode = "";
+        private string mode;
         private List<Message> messages = new List<Message>();
 
         public User(LocalDateTime dt, string name)
         {
             this.name = name;
+            this.mode = "";
 
             Message m = new Message(dt, mode, name, "joins");
             messages.Add(m);
@@ -34,8 +35,9 @@ namespace ZNC_Log_Importer
             this.name = name;
         }
 
-        public void addMessage(Message m)
+        public void addMessage(LocalDateTime dt, String text)
         {
+            Message m = new Message(dt, mode, name, text);
             messages.Add(m);
         }
 
