@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NodaTime;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -7,10 +8,11 @@ namespace ZNC_Log_Importer
 {
     class FileParser
     {
-        private String fileName;
-        private DateTime date;
+        private string fileName;
+        private LocalDate date;
+        private Dictionary<string, User> users = new Dictionary<string, User>();
 
-        public FileParser(String fileName)
+        public FileParser(string fileName)
         {
             this.fileName = fileName;
 
@@ -18,16 +20,16 @@ namespace ZNC_Log_Importer
             Match match = regex.Match(fileName);
             if (match.Success)
             {
-                date = new DateTime(int.Parse(match.Groups[1].Value), int.Parse(match.Groups[2].Value), int.Parse(match.Groups[3].Value));
+                date = new LocalDate(int.Parse(match.Groups[1].Value), int.Parse(match.Groups[2].Value), int.Parse(match.Groups[3].Value));
             } else
             {
-                date = new DateTime();
+                date = new LocalDate();
             }
         }
 
         public void parse()
         {
-            String line;
+            string line;
             Regex regexJoinQuit = new Regex(@"^\[(\d{2}):(\d{2}):(\d{2})\] \*\*\* (Joins|Quits): ([\w-\{}|[\]]+) \((?:\w+@[\w.:]+)\)(?: \(([\w :.]+)\))?$");
             Regex regexSetMode = new Regex(@"^\[(\d{2}):(\d{2}):(\d{2})\] \*\*\* RatMama\[BOT\] sets mode: (\+[vhoa]) ([\w-,\{}|[\]]+)$");
             Regex regexRename = new Regex(@"^\[(\d{2}):(\d{2}):(\d{2})\] \*\*\* ([\w-\{}|[\]]+) is now known as ([\w-\{}|[\]]+)$");
@@ -44,7 +46,21 @@ namespace ZNC_Log_Importer
                 matchJoinQuit = regexJoinQuit.Match(line);
                 if(matchJoinQuit.Success && matchJoinQuit.Groups.Count >= 6)
                 {
-                    // TODO handle Join/Quit
+                    LocalDateTime dt = new LocalDateTime(date.Year, date.Month, date.Day, int.Parse(matchJoinQuit.Groups[1].Value), int.Parse(matchJoinQuit.Groups[2].Value), int.Parse(matchJoinQuit.Groups[3].Value));
+
+                    if (matchJoinQuit.Groups[4].Value.Equals("Joins"))
+                    {
+                        User u = new User(dt, matchJoinQuit.Groups[5].Value);
+                        users.Add(u.name, u);
+                    }
+
+                    if(matchJoinQuit.Groups[4].Value.Equals("Quits"))
+                    {
+                        User u = users[matchJoinQuit.Groups[5].Value];
+                        u.quit(dt);
+                        users.Remove(u.name);
+                    }
+
                     continue;
                 }
 

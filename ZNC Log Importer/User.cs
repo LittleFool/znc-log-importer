@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NodaTime;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
@@ -7,32 +8,40 @@ namespace ZNC_Log_Importer
 {
     class User
     {
-        private string name;
-        private string mode;
+        public string name { private set; get; }
+        private string mode = "";
         private List<Message> messages = new List<Message>();
 
-        public User(string name, string mode)
+        public User(LocalDateTime dt, string name)
         {
             this.name = name;
-            this.mode = mode;
+
+            Message m = new Message(dt, mode, name, "joins");
+            messages.Add(m);
         }
 
-        public void setMode(DateTime time, string mode)
+        public void setMode(LocalDateTime dt, string mode)
         {
-            Message m = new Message(time, this.mode, name, "changed mode to " + mode);
+            Message m = new Message(dt, this.mode, name, "changed mode to " + mode);
             messages.Add(m);
             this.mode = mode;
         }
 
-        public void setName(DateTime time, string name)
+        public void setName(LocalDateTime dt, string name)
         {
-            Message m = new Message(time, mode, this.name, "changed name to " + name);
+            Message m = new Message(dt, mode, this.name, "changed name to " + name);
             messages.Add(m);
             this.name = name;
         }
 
         public void addMessage(Message m)
         {
+            messages.Add(m);
+        }
+
+        public void quit(LocalDateTime dt)
+        {
+            Message m = new Message(dt, mode, name, "quits");
             messages.Add(m);
         }
     }

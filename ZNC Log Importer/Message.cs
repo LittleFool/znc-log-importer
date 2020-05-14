@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NodaTime;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -6,14 +7,14 @@ namespace ZNC_Log_Importer
 {
     class Message
     {
-        private DateTime time { get; }
+        private LocalDateTime dt { get; }
         private String mode { get; }
         private String name { get; }
         private String text { get; }
 
-        public Message(DateTime time, String mode, String name, String text)
+        public Message(LocalDateTime dt, String mode, String name, String text)
         {
-            this.time = time;
+            this.dt = dt;
             this.mode = mode;
             this.name = name;
             this.text = text;
