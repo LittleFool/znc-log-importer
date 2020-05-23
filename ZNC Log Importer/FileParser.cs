@@ -31,7 +31,7 @@ namespace ZNC_Log_Importer
         {
             string line;
             LocalDateTime dt;
-            Regex regexJoinQuit = new Regex(@"^\[(\d{2}):(\d{2}):(\d{2})\] \*\*\* (Joins|Quits): ([\w-\{}|[\]]+) \((?:\w+@[\w.:]+)\)(?: \(([\w \{}|[\]!""§$% &\/= _,;<>|:().! -]+)\))?$");
+            Regex regexJoinQuit = new Regex(@"^\[(\d{2}):(\d{2}):(\d{2})\] \*\*\* (Joins|Quits|Parts): ([\w\-\{}|[\]]+) \((?:[\w~]+@[\w.:]+)\)(?: \((.*)\))?$");
             Regex regexSetMode = new Regex(@"^\[(\d{2}):(\d{2}):(\d{2})\] \*\*\* RatMama\[BOT\] sets mode: (\+[vhoa]) ([\w-,\{}|[\]]+)$");
             Regex regexRename = new Regex(@"^\[(\d{2}):(\d{2}):(\d{2})\] \*\*\* ([\w-\{}|[\]]+) is now known as ([\w-\{}|[\]]+)$");
             Regex regexText = new Regex(@"^\[(\d{2}):(\d{2}):(\d{2})\] <([\w-\{}|[\]]+)> (.*)$");
@@ -69,7 +69,7 @@ namespace ZNC_Log_Importer
                     }
 
                     // User quits
-                    if(matchJoinQuit.Groups[4].Value.Equals("Quits"))
+                    if(matchJoinQuit.Groups[4].Value.Equals("Quits") || matchJoinQuit.Groups[4].Value.Equals("Parts"))
                     {
                         // Username could be in the dictionary else we didnt see them join
                         if (users.ContainsKey(matchJoinQuit.Groups[5].Value))
@@ -131,7 +131,7 @@ namespace ZNC_Log_Importer
 
                 // normal text line
                 matchText = regexText.Match(line);
-                if(matchText.Success && matchText.Groups.Count == 5)
+                if(matchText.Success && matchText.Groups.Count == 6)
                 {
                     User u;
 
@@ -141,6 +141,7 @@ namespace ZNC_Log_Importer
                     } else
                     {
                         u = new User(matchText.Groups[4].Value);
+                        users.Add(u.name, u);
                     }
 
                     u.addMessage(dt, matchText.Groups[5].Value);
