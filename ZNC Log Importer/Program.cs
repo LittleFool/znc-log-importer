@@ -7,7 +7,10 @@ namespace ZNC_Log_Importer
     {
         static void Main(string[] args)
         {
-            string[] files = Directory.GetFiles(@"C:\temp\", "*.log");
+            Config config = Config.Instance;
+            config.readConfigFile(args[0]);
+
+            string[] files = Directory.GetFiles(config.getValue("Logs", "folder", ""), "*.log");
             foreach (var item in files)
             {
                 FileParser fp = new FileParser(item);

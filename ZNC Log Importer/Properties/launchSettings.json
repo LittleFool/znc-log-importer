@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "ZNC Log Importer": {
+      "commandName": "Project",
+      "commandLineArgs": "C:\\Temp\\config.ini"
+    }
+  }
+}
